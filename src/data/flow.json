@@ -1,0 +1,60 @@
+{
+  "version": "1.0.0",
+  "steps": {
+    "start": {
+      "id": "start",
+      "title": "Welcome to ElectEase AI",
+      "description": "Let's determine your current voter status to guide you through the process.",
+      "type": "question",
+      "options": [
+        { "label": "I am a first-time voter", "value": "first-time", "next": "registration_check" },
+        { "label": "I am already registered", "value": "registered", "next": "verify_registration" },
+        { "label": "I want to be a candidate", "value": "candidate", "next": "candidate_intro" }
+      ]
+    },
+    "registration_check": {
+      "id": "registration_check",
+      "title": "Registration Status",
+      "description": "Have you started your voter registration process yet?",
+      "type": "question",
+      "options": [
+        { "label": "No, I haven't started", "value": "not_started", "next": "eligibility_info" },
+        { "label": "Yes, I have applied", "value": "applied", "next": "check_status_link" }
+      ]
+    },
+    "eligibility_info": {
+      "id": "eligibility_info",
+      "title": "Voter Eligibility",
+      "description": "To register, you must be 18+ years old and a citizen of the country.",
+      "type": "info",
+      "next": "document_collection",
+      "timeline_event": "Early Registration"
+    },
+    "document_collection": {
+      "id": "document_collection",
+      "title": "Gather Documents",
+      "description": "You will need: 1. Identity Proof, 2. Address Proof, 3. Passport Photograph.",
+      "type": "info",
+      "next": "application_submission"
+    },
+    "application_submission": {
+      "id": "application_submission",
+      "title": "Submit Application",
+      "description": "Submit your Form 6 online or at the local electoral office.",
+      "type": "action",
+      "next": "done",
+      "timeline_event": "Application Deadline: May 15th"
+    },
+    "done": {
+      "id": "done",
+      "title": "Process Complete",
+      "description": "You have completed the current guidance flow. We will notify you of any updates.",
+      "type": "final"
+    }
+  },
+  "timeline_defaults": [
+    { "event": "Registration Starts", "date": "2026-04-01" },
+    { "event": "Application Deadline", "date": "2026-05-15" },
+    { "event": "Election Day", "date": "2026-06-10" }
+  ]
+}
