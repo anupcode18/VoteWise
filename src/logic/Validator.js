@@ -1,39 +1,42 @@
 /**
  * ElectEase Security Layer (Validator)
- * 3-layer security for input sanitization, context validation, and output integrity.
+ * Strict, deterministic 3-layer security for civic guidance.
  */
 
 const requestCounts = new Map();
 
 const Validator = {
   /**
-   * Rate limiting to prevent spam/abuse.
-   * Tracks request count by a generic identifier (e.g., 'session').
+   * Dynamic rate limiting using token/session ID.
+   * Tracks { count, startTime } and resets after windowMs.
    */
-  checkRateLimit(identifier = 'global', limit = 50, windowMs = 60000) {
+  checkRateLimit(identifier, limit = 10, windowMs = 60000) {
+    if (!identifier) return false;
     const now = Date.now();
     const record = requestCounts.get(identifier) || { count: 0, startTime: now };
     
     if (now - record.startTime > windowMs) {
+      // Reset window
       record.count = 1;
       record.startTime = now;
     } else {
       record.count++;
     }
+    
     requestCounts.set(identifier, record);
     return record.count <= limit;
   },
 
   /**
    * 1. sanitizeInput(input)
-   * Whitelist-based sanitization: allows only a-zA-Z0-9 and spaces.
+   * Strict whitelist-based sanitization.
    */
-  sanitizeInput(input, maxLength = 100) {
+  sanitizeInput(input, maxLength = 50) {
     if (typeof input !== 'string') return '';
     let sanitized = input.trim();
     
-    // Whitelist: only alphanumeric and space
-    sanitized = sanitized.replace(/[^a-zA-Z0-9\s]/g, '');
+    // Strict Whitelist: alphanumeric, space, and hyphen ONLY
+    sanitized = sanitized.replace(/[^a-zA-Z0-9\s\-]/g, '');
     
     if (sanitized.length > maxLength) {
       sanitized = sanitized.substring(0, maxLength);
@@ -43,27 +46,29 @@ const Validator = {
 
   /**
    * 2. validateContext(context)
-   * Strictly enforces fields and types.
+   * Strictly enforces fields and types, rejecting invalid partial states.
    */
   validateContext(context) {
-    if (!context || typeof context !== 'object') return { valid: false, safeContext: { voter_type: 'unknown', age: null, location: null } };
+    if (!context || typeof context !== 'object') {
+      return { valid: false, safeContext: { voter_type: 'unknown', age: null, location: null } };
+    }
 
     const allowedVoterTypes = ['first-time', 'registered', 'candidate'];
     const safeContext = {};
     let isValid = true;
 
-    // Validate voter_type
+    // Validate voter_type (REQUIRED)
     if (context.voter_type !== undefined && context.voter_type !== null) {
-      // Allow alphanumeric and hyphens, ensure it's a string
       let typeStr = String(context.voter_type);
       let sanitizedType = typeStr.trim().replace(/[^a-zA-Z0-9\-]/g, '').toLowerCase();
       if (allowedVoterTypes.includes(sanitizedType)) {
         safeContext.voter_type = sanitizedType;
       } else {
         isValid = false;
-        safeContext.voter_type = 'unknown';
+        safeContext.voter_type = 'unknown'; // Safe Fallback
       }
     } else {
+      isValid = false;
       safeContext.voter_type = 'unknown';
     }
 
@@ -74,15 +79,22 @@ const Validator = {
         safeContext.age = ageNum;
       } else {
         isValid = false;
-        safeContext.age = null;
+        safeContext.age = null; // Fallback
       }
     } else {
       safeContext.age = null;
     }
 
-    // Validate location (string)
-    if (context.location) {
-      safeContext.location = this.sanitizeInput(context.location, 50);
+    // Validate location
+    if (context.location !== undefined && context.location !== null) {
+      const locStr = String(context.location);
+      const cleanLoc = this.sanitizeInput(locStr, 50);
+      if (cleanLoc.length > 0) {
+        safeContext.location = cleanLoc;
+      } else {
+        isValid = false;
+        safeContext.location = null;
+      }
     } else {
       safeContext.location = null;
     }
@@ -92,14 +104,14 @@ const Validator = {
 
   /**
    * 3. validateOutput(output, flow)
-   * Ensures output structure and contents are strictly from predefined flow.
+   * Prevents arbitrary logic execution or hallucinations.
    */
   validateOutput(output, flow) {
     if (!output || typeof output !== 'object') return false;
 
-    // Strict structural enforcement
+    // Strict structure
     const keys = Object.keys(output);
-    if (keys.length !== 3 || !keys.includes('step') || !keys.includes('progress') || !keys.includes('timeline')) {
+    if (!keys.includes('step') || !keys.includes('progress') || !keys.includes('timeline')) {
         return false;
     }
 
@@ -120,7 +132,7 @@ const Validator = {
 
   getSafeFallback() {
     return {
-      step: { id: "start", title: "Safe Mode", description: "Invalid input detected. Restarting safely.", type: "system" },
+      step: { id: "start", title: "Safe Mode", description: "Invalid input or excessive requests detected. Restarting safely.", type: "system" },
       progress: 0,
       timeline: []
     };

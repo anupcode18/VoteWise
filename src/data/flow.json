@@ -1,11 +1,16 @@
 {
-  "version": "1.0.0",
+  "version": "1.1.0",
+  "routing": {
+    "first-time": "registration_check",
+    "registered": "verify_registration",
+    "candidate": "candidate_intro"
+  },
   "steps": {
     "start": {
       "id": "start",
       "title": "Welcome to ElectEase AI",
       "description": "Let's determine your current voter status to guide you through the process.",
-      "type": "question",
+      "type": "system",
       "options": [
         { "label": "I am a first-time voter", "value": "first-time", "next": "registration_check" },
         { "label": "I am already registered", "value": "registered", "next": "verify_registration" },
@@ -22,28 +27,35 @@
         { "label": "Yes, I have applied", "value": "applied", "next": "check_status_link" }
       ]
     },
+    "verify_registration": {
+      "id": "verify_registration",
+      "title": "Verify Voter Status",
+      "description": "Please check your name on the electoral roll.",
+      "type": "action"
+    },
+    "candidate_intro": {
+      "id": "candidate_intro",
+      "title": "Candidate Portal",
+      "description": "Information for political candidates.",
+      "type": "info"
+    },
     "eligibility_info": {
       "id": "eligibility_info",
       "title": "Voter Eligibility",
       "description": "To register, you must be 18+ years old and a citizen of the country.",
-      "type": "info",
-      "next": "document_collection",
-      "timeline_event": "Early Registration"
+      "type": "info"
     },
     "document_collection": {
       "id": "document_collection",
       "title": "Gather Documents",
       "description": "You will need: 1. Identity Proof, 2. Address Proof, 3. Passport Photograph.",
-      "type": "info",
-      "next": "application_submission"
+      "type": "info"
     },
     "application_submission": {
       "id": "application_submission",
       "title": "Submit Application",
       "description": "Submit your Form 6 online or at the local electoral office.",
-      "type": "action",
-      "next": "done",
-      "timeline_event": "Application Deadline: May 15th"
+      "type": "action"
     },
     "done": {
       "id": "done",

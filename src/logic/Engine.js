@@ -8,41 +8,43 @@ const Validator = require('./Validator');
 class DecisionEngine {
   constructor(flowData) {
     this.flow = flowData.steps;
+    this.routing = flowData.routing;
     this.timelineDefaults = flowData.timeline_defaults;
   }
 
   /**
    * Resolves the current state based on external user context.
-   * STRICTLY ignores internal control fields.
    * @param {Object} rawContext - Unsafe user context
+   * @param {string} sessionId - Identifier for rate limiting
    * @returns {Object} { step, progress, timeline }
    */
-  resolveState(rawContext) {
-    // 1. Rate Limiting Check
-    if (!Validator.checkRateLimit('user_session')) {
+  resolveState(rawContext, sessionId = 'default_session') {
+    // 1. Dynamic Rate Limiting Check
+    if (!Validator.checkRateLimit(sessionId, 10, 60000)) {
       return Validator.getSafeFallback();
     }
 
     // 2. Validate and Normalize Context
     const { valid, safeContext } = Validator.validateContext(rawContext);
 
-    // 3. Context Resolver: Derive Step Internally
+    // 3. Context Resolver & Completeness Checking
     let currentStepId = 'start';
     
+    // Voter type is REQUIRED for progression
     if (safeContext.voter_type !== 'unknown') {
-      // Derive step based on context
-      if (safeContext.voter_type === 'first-time') {
-        currentStepId = 'registration_check';
-        // Basic condition checking (extendable)
+      // Dynamic routing from flow.json
+      if (this.routing[safeContext.voter_type]) {
+        currentStepId = this.routing[safeContext.voter_type];
+        
+        // Example of conditional checking (e.g., age validation)
         if (safeContext.age !== null && safeContext.age < 18) {
-           // Provide early block if underage (example of intelligent handling)
-           currentStepId = 'ineligible_age'; // If this step existed, but let's stick to flow
+           // We can route to an ineligible step if it existed, but we enforce defaults
+           currentStepId = 'eligibility_info'; 
         }
-      } else if (safeContext.voter_type === 'registered') {
-        currentStepId = 'verify_registration'; // Assume this exists in flow.json
-      } else if (safeContext.voter_type === 'candidate') {
-        currentStepId = 'candidate_intro'; // Assume this exists in flow.json
       }
+    } else {
+      // If missing or invalid -> fallback to start
+      currentStepId = 'start';
     }
 
     const currentStep = this.flow[currentStepId] || this.flow['start'];
