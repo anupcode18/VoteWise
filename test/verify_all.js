@@ -1,6 +1,8 @@
-const DecisionEngine = require('../src/logic/Engine');
-const Validator = require('../src/logic/Validator');
-const ExplainabilityEngine = require('../src/logic/ExplainabilityEngine');
+import DecisionEngine from '../src/logic/Engine.js';
+import Validator from '../src/logic/Validator.js';
+import ExplainabilityEngine from '../src/logic/ExplainabilityEngine.js';
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
 const flowData = require('../src/data/flow.json');
 
 const engine = new DecisionEngine(flowData);

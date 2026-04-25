@@ -3,7 +3,7 @@
  * Deterministic, rule-based logic for civic guidance.
  */
 
-const Validator = require('./Validator');
+import Validator from './Validator.js';
 
 class DecisionEngine {
   constructor(flowData) {
@@ -18,6 +18,11 @@ class DecisionEngine {
    * @param {string} sessionId - Identifier for rate limiting
    * @returns {Object} { step, progress, timeline }
    */
+  /**
+   * Resolve the next step given a targetStepId OR fall back to routing.
+   * targetStepId is pre-resolved by the UI from option.next / step.next.
+   * The engine validates it exists in the flow graph before accepting.
+   */
   resolveState(rawContext, sessionId = 'default_session') {
     // 1. Dynamic Rate Limiting Check
     if (!Validator.checkRateLimit(sessionId, 10, 60000)) {
@@ -27,29 +32,26 @@ class DecisionEngine {
     // 2. Validate and Normalize Context
     const { valid, safeContext } = Validator.validateContext(rawContext);
 
-    // 3. Context Resolver & Completeness Checking
+    // 3. Determine current step
     let currentStepId = 'start';
-    
-    // Voter type is REQUIRED for progression
-    if (safeContext.voter_type !== 'unknown') {
-      // Dynamic routing from flow.json
-      if (this.routing[safeContext.voter_type]) {
-        currentStepId = this.routing[safeContext.voter_type];
-        
-        // Example of conditional checking (e.g., age validation)
-        if (safeContext.age !== null && safeContext.age < 18) {
-           // We can route to an ineligible step if it existed, but we enforce defaults
-           currentStepId = 'eligibility_info'; 
-        }
-      }
-    } else {
-      // If missing or invalid -> fallback to start
-      currentStepId = 'start';
+
+    // 3a. If the UI has resolved a specific target step, validate and use it
+    if (rawContext._targetStepId && this.flow[rawContext._targetStepId]) {
+      currentStepId = rawContext._targetStepId;
+    }
+    // 3b. Otherwise, use voter_type routing for initial entry
+    else if (safeContext.voter_type && safeContext.voter_type !== 'unknown') {
+      currentStepId = this.routing[safeContext.voter_type] || 'start';
+    }
+
+    // 4. Age-based overrides (High priority)
+    if (safeContext.age !== null && safeContext.age < 18) {
+       currentStepId = 'eligibility_info';
     }
 
     const currentStep = this.flow[currentStepId] || this.flow['start'];
 
-    // 4. Generate progress & timeline
+    // 5. Generate progress & timeline
     const progress = this.calculateProgress(currentStepId);
     const timeline = this.generateTimeline(safeContext);
 
@@ -59,7 +61,7 @@ class DecisionEngine {
       timeline
     };
 
-    // 5. Final Output Integrity Check
+    // 6. Final Output Integrity Check
     if (!Validator.validateOutput(output, { steps: this.flow, timeline_defaults: this.timelineDefaults })) {
         return Validator.getSafeFallback();
     }
@@ -68,11 +70,51 @@ class DecisionEngine {
   }
 
   calculateProgress(stepId) {
+    if (stepId === 'start') return 0;
+    if (this.flow[stepId] && this.flow[stepId].type === 'final') return 100;
+
+    // Walk forward from stepId following .next links to count remaining steps
+    let remaining = 0;
+    let walkId = stepId;
+    const visited = new Set();
+    while (walkId && this.flow[walkId] && this.flow[walkId].type !== 'final' && !visited.has(walkId)) {
+      visited.add(walkId);
+      remaining++;
+      walkId = this.flow[walkId].next || null;
+    }
+
+    // Walk backward: count how many steps from start to here
+    // Use a simple approach: total path = steps behind + steps ahead
+    // Steps behind = we know the step isn't start or final
+    // Estimate total depth from routing entry to done
+    let total = remaining;
+    // Walk from routing entry forward to count full path length
+    for (const [, entryId] of Object.entries(this.routing)) {
+      let id = entryId;
+      let depth = 1;
+      const seen = new Set();
+      while (id && this.flow[id] && this.flow[id].type !== 'final' && !seen.has(id)) {
+        seen.add(id);
+        if (id === stepId) {
+          // Found our step at position 'depth' in this path
+          total = depth + remaining - 1;
+          return Math.round((depth / (total + 1)) * 100);
+        }
+        depth++;
+        // Follow first option's next or direct next
+        if (this.flow[id].options && this.flow[id].options.length > 0) {
+          id = this.flow[id].options[0].next;
+        } else {
+          id = this.flow[id].next || null;
+        }
+      }
+    }
+
+    // Fallback: simple ratio
     const stepKeys = Object.keys(this.flow);
-    const currentIndex = stepKeys.indexOf(stepId);
-    if (currentIndex === -1) return 0;
-    if (this.flow[stepId].type === 'final') return 100;
-    return Math.round(((currentIndex) / (stepKeys.length - 1)) * 100);
+    const idx = stepKeys.indexOf(stepId);
+    if (idx === -1) return 0;
+    return Math.round((idx / (stepKeys.length - 1)) * 100);
   }
 
   generateTimeline(safeContext) {
@@ -84,8 +126,4 @@ class DecisionEngine {
   }
 }
 
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = DecisionEngine;
-} else {
-  window.DecisionEngine = DecisionEngine;
-}
+export default DecisionEngine;

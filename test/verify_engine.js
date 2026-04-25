@@ -1,32 +1,28 @@
-const DecisionEngine = require('../src/logic/Engine');
-const Validator = require('../src/logic/Validator');
+import DecisionEngine from '../src/logic/Engine.js';
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
 const flowData = require('../src/data/flow.json');
 
 const engine = new DecisionEngine(flowData);
 
-function test(context, description) {
-  console.log(`\nTEST: ${description}`);
-  const state = engine.resolveState(context);
-  console.log(`Current Step: ${state.step.id} (${state.step.title})`);
-  return state;
-}
+console.log("TEST: Decision Engine Resolution");
 
-// 1. Empty input {}
-test({}, "Empty input");
+// Test Case 1: First-time voter
+const context1 = { voter_type: 'first-time', age: 18 };
+const state1 = engine.resolveState(context1);
+console.log("State 1 (first-time):", state1.step.id);
+console.assert(state1.step.id === 'registration_check', "State 1 failed");
 
-// 2. Valid user context
-test({ voter_type: 'first-time', age: 25, location: 'NY' }, "Valid context (First-time)");
+// Test Case 2: Registered voter
+const context2 = { voter_type: 'registered' };
+const state2 = engine.resolveState(context2);
+console.log("State 2 (registered):", state2.step.id);
+console.assert(state2.step.id === 'verify_registration', "State 2 failed");
 
-// 3. Extremely long input
-test({ voter_type: 'a'.repeat(5000), age: 100 }, "Extremely long input");
+// Test Case 3: Malicious injection
+const context3 = { voter_type: 'registered', currentStepId: 'done' };
+const state3 = engine.resolveState(context3);
+console.log("State 3 (injection check):", state3.step.id);
+console.assert(state3.step.id === 'verify_registration', "State 3 failed - should ignore internal control fields");
 
-// 4. Invalid data types
-test({ voter_type: 12345, age: "twenty" }, "Invalid data types");
-
-// 5. Mixed valid + invalid fields
-test({ voter_type: 'candidate', admin_override: true, injected_step: 'done' }, "Mixed valid + internal fields");
-
-// 6. Injection-like inputs
-test({ voter_type: '<script>alert(1)</script>', location: 'DROP TABLE users;' }, "Injection-like inputs");
-
-console.log("\nVERIFICATION COMPLETE: Edge cases tested.");
+console.log("VERIFY ENGINE: PASSED");

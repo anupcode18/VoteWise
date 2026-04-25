@@ -139,8 +139,4 @@ const Validator = {
   }
 };
 
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = Validator;
-} else {
-  window.Validator = Validator;
-}
+export default Validator;

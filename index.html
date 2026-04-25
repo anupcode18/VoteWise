@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ElectEase AI | Civic Guidance Console</title>
+    <link rel="stylesheet" href="src/ui/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="background-blobs"></div>
+    
+    <main class="console-container">
+        <header class="console-header">
+            <div class="verified-badge" id="verified-badge">
+                <span class="badge-icon">✓</span> Verified Guidance
+            </div>
+            <h1>ElectEase AI</h1>
+            <p class="subtitle">Context-Aware Civic Assistant</p>
+        </header>
+
+        <section class="progress-section">
+            <div class="progress-label">
+                <span>Guidance Progress</span>
+                <span id="progress-percent">0%</span>
+            </div>
+            <div class="progress-bar-container">
+                <div class="progress-bar-fill" id="progress-bar"></div>
+            </div>
+        </section>
+
+        <section class="step-card" id="step-card">
+            <h2 id="step-title">Initializing...</h2>
+            
+            <div class="content-block">
+                <h3>Explanation</h3>
+                <p id="step-explanation"></p>
+            </div>
+
+            <div class="content-block secondary">
+                <h3>Why this matters</h3>
+                <p id="step-why"></p>
+            </div>
+
+            <div class="alert-box" id="step-alert" style="display: none;">
+                <p id="alert-message"></p>
+            </div>
+
+            <div class="action-box">
+                <h3>Next Action</h3>
+                <p id="step-action"></p>
+            </div>
+
+            <!-- Smart Recommendation -->
+            <div class="recommendation-box" id="recommendation-box">
+                <h3>💡 Recommendation</h3>
+                <p id="recommendation-text"></p>
+            </div>
+
+            <!-- Readiness Score & Checklist -->
+            <div class="readiness-section" id="readiness-section">
+                <div class="readiness-header">
+                    <span>Readiness</span>
+                    <span class="readiness-score" id="readiness-score">0%</span>
+                </div>
+                <div class="readiness-bar-container">
+                    <div class="readiness-bar-fill" id="readiness-bar"></div>
+                </div>
+                <div class="checklist" id="checklist">
+                    <div class="checklist-item" id="check-eligibility">
+                        <span class="check-icon">○</span> Eligibility Confirmed
+                    </div>
+                    <div class="checklist-item" id="check-documents">
+                        <span class="check-icon">○</span> Documents Ready
+                    </div>
+                    <div class="checklist-item" id="check-submission">
+                        <span class="check-icon">○</span> Application Submitted
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-container" id="input-container">
+                <!-- Inputs will be injected here -->
+            </div>
+
+            <footer class="card-footer">
+                <div class="next-step-hint" id="next-step-hint"></div>
+                <div class="footer-actions">
+                    <button class="secondary-btn" id="simple-toggle" title="Toggle Simple Mode">☰ Simple</button>
+                    <button class="secondary-btn" id="download-btn" title="Download Plan">↓ Plan</button>
+                    <button class="primary-btn" id="next-btn">Start Guidance</button>
+                </div>
+            </footer>
+        </section>
+
+        <footer class="console-footer">
+            <p>Source: Predefined Election Rules • Deterministic Logic Engine v1.2</p>
+        </footer>
+    </main>
+
+    <!-- UI Layer (Entry Point) -->
+    <script type="module" src="src/ui/main.js"></script>
+</body>
+</html>

@@ -1,5 +1,5 @@
 {
-  "version": "1.1.0",
+  "version": "1.2.0",
   "routing": {
     "first-time": "registration_check",
     "registered": "verify_registration",
@@ -24,38 +24,43 @@
       "type": "question",
       "options": [
         { "label": "No, I haven't started", "value": "not_started", "next": "eligibility_info" },
-        { "label": "Yes, I have applied", "value": "applied", "next": "check_status_link" }
+        { "label": "Yes, I have applied", "value": "applied", "next": "done" }
       ]
-    },
-    "verify_registration": {
-      "id": "verify_registration",
-      "title": "Verify Voter Status",
-      "description": "Please check your name on the electoral roll.",
-      "type": "action"
-    },
-    "candidate_intro": {
-      "id": "candidate_intro",
-      "title": "Candidate Portal",
-      "description": "Information for political candidates.",
-      "type": "info"
     },
     "eligibility_info": {
       "id": "eligibility_info",
       "title": "Voter Eligibility",
       "description": "To register, you must be 18+ years old and a citizen of the country.",
-      "type": "info"
+      "type": "info",
+      "next": "document_collection"
     },
     "document_collection": {
       "id": "document_collection",
       "title": "Gather Documents",
       "description": "You will need: 1. Identity Proof, 2. Address Proof, 3. Passport Photograph.",
-      "type": "info"
+      "type": "info",
+      "next": "application_submission"
     },
     "application_submission": {
       "id": "application_submission",
       "title": "Submit Application",
       "description": "Submit your Form 6 online or at the local electoral office.",
-      "type": "action"
+      "type": "action",
+      "next": "done"
+    },
+    "verify_registration": {
+      "id": "verify_registration",
+      "title": "Verify Voter Status",
+      "description": "Please check your name on the electoral roll.",
+      "type": "action",
+      "next": "done"
+    },
+    "candidate_intro": {
+      "id": "candidate_intro",
+      "title": "Candidate Portal",
+      "description": "Information for political candidates.",
+      "type": "info",
+      "next": "done"
     },
     "done": {
       "id": "done",
