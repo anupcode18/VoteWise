@@ -1,6 +1,9 @@
 /**
  * ElectEase Explainability Engine
- * Reads templates from flow.json (data-driven, zero hardcoded text).
+ * 
+ * PURPOSE: Transforms raw engine state into user-friendly, structured explainable output.
+ * RESPONSIBILITIES: Reads templates from flow.json, maps state to human-readable explanations, calculates readiness scores, and populates official links.
+ * SECURITY NOTES: Driven entirely by predefined JSON templates (zero hardcoded text, zero LLM hallucinations).
  */
 
 class ExplainabilityEngine {
@@ -12,10 +15,10 @@ class ExplainabilityEngine {
   }
 
   /**
-   * Translates the logic state into structured explainable output.
-   * @param {Object} state - Output from Decision Engine { step, progress, timeline }
-   * @param {boolean} simpleMode - If true, use simplified explanation
-   * @returns {Object} Structured standardized output
+   * generateGuidance
+   * INPUTS: state (Object { step, progress, timeline }), simpleMode (boolean)
+   * OUTPUTS: Object (Structured standardized output for UI)
+   * BEHAVIOR: Translates the logic state into a complete guidance object including explanation, why, action, alerts, recommendations, and official links. Calculates readiness score dynamically.
    */
   generateGuidance(state, simpleMode = false) {
     if (!state || !state.step || !state.step.id) {

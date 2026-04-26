@@ -1,14 +1,19 @@
 /**
  * ElectEase Security Layer (Validator)
- * Strict, deterministic 3-layer security for civic guidance.
+ * 
+ * PURPOSE: Strict, deterministic 3-layer security for civic guidance.
+ * RESPONSIBILITIES: Rate limiting, input sanitization, and output schema enforcement.
+ * SECURITY NOTES: Uses strict whitelisting for inputs (alphanumeric, space, hyphen) and ensures output objects conform strictly to flow.json schemas to prevent injection/tampering.
  */
 
 const requestCounts = new Map();
 
 const Validator = {
   /**
-   * Dynamic rate limiting using token/session ID.
-   * Tracks { count, startTime } and resets after windowMs.
+   * checkRateLimit
+   * INPUTS: identifier (string), limit (number), windowMs (number)
+   * OUTPUTS: boolean
+   * BEHAVIOR: Tracks request counts per identifier within a time window. Returns false if limit is exceeded.
    */
   checkRateLimit(identifier, limit = 10, windowMs = 60000) {
     if (!identifier) return false;
@@ -28,8 +33,10 @@ const Validator = {
   },
 
   /**
-   * 1. sanitizeInput(input)
-   * Strict whitelist-based sanitization.
+   * sanitizeInput
+   * INPUTS: input (string), maxLength (number)
+   * OUTPUTS: string (sanitized)
+   * BEHAVIOR: Strict whitelist-based sanitization. Strips all characters except alphanumeric, space, and hyphen. Truncates to maxLength.
    */
   sanitizeInput(input, maxLength = 50) {
     if (typeof input !== 'string') return '';
@@ -45,8 +52,10 @@ const Validator = {
   },
 
   /**
-   * 2. validateContext(context)
-   * Strictly enforces fields and types, rejecting invalid partial states.
+   * validateContext
+   * INPUTS: context (Object)
+   * OUTPUTS: Object { valid: boolean, safeContext: Object }
+   * BEHAVIOR: Strictly enforces expected fields (voter_type, age, location) and types, rejecting or falling back invalid partial states.
    */
   validateContext(context) {
     if (!context || typeof context !== 'object') {
@@ -103,8 +112,10 @@ const Validator = {
   },
 
   /**
-   * 3. validateOutput(output, flow)
-   * Prevents arbitrary logic execution or hallucinations.
+   * validateOutput
+   * INPUTS: output (Object), flow (Object)
+   * OUTPUTS: boolean
+   * BEHAVIOR: Verifies output against flow.json schemas to prevent arbitrary logic execution or hallucinations.
    */
   validateOutput(output, flow) {
     if (!output || typeof output !== 'object') return false;

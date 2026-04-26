@@ -1,7 +1,12 @@
 /**
  * ElectEase AI | UI Layer (main.js)
- * Dashboard orchestrator — connects engines to UI components.
- * Zero external dependencies. Pure ES Modules.
+ * 
+ * SYSTEM ARCHITECTURE:
+ * User → Validator (Security) → Decision Engine (Logic) → Explainability (UI formatting) → UI (main.js)
+ * 
+ * PURPOSE: Orchestrates DOM updates, handles user input, and triggers the logic pipeline.
+ * RESPONSIBILITIES: DOM caching, event listening, rendering progress, handling location API, downloading plans.
+ * SECURITY NOTES: Relies on Validator.js to ensure state objects from the UI are safe before passing to the Engine.
  */
 
 import DecisionEngine from '../logic/Engine.js';

@@ -1,7 +1,9 @@
 /**
  * ElectEase Decision Engine
- * Deterministic, rule-based logic for civic guidance.
- * All routing and step logic is data-driven from flow.json.
+ * 
+ * PURPOSE: Deterministic, rule-based logic for civic guidance.
+ * RESPONSIBILITIES: Resolves state based on user input, determines the next logical step from flow.json, tracks progress, and calculates timeline.
+ * SECURITY NOTES: Output integrity is checked via Validator.js before returning. Logic is purely data-driven (no hallucinations).
  */
 
 import Validator from './Validator.js';
@@ -42,10 +44,10 @@ class DecisionEngine {
   }
 
   /**
-   * Resolve the current step from user context.
-   * @param {Object} rawContext - External user context
-   * @param {string} sessionId - Rate limiting identifier
-   * @returns {Object} { step, progress, timeline }
+   * resolveState
+   * INPUTS: rawContext (Object from UI), sessionId (string)
+   * OUTPUTS: Object { step, progress, timeline }
+   * BEHAVIOR: Rate limits session, validates context, determines current/next step based on flow.json routing, calculates progress and timeline, then verifies output integrity.
    */
   resolveState(rawContext, sessionId = 'default_session') {
     // 0. Null guard

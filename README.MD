@@ -1,46 +1,77 @@
-# ElectEase AI
+# ElectEase AI — Smart Civic Guidance Assistant
 
-ElectEase AI is a context-aware civic guidance assistant designed to help users understand and navigate election processes in an interactive, step-by-step manner.
+## Problem Statement
+Navigating election processes can be overwhelming and confusing for many citizens. Key challenges include:
+- Lack of clarity on registration steps and required documentation.
+- Confusion regarding eligibility criteria and deadlines.
+- Difficulty in finding local election offices for real-world actions.
+- General misinformation and the complexity of official government portals.
 
-Unlike standard chatbots, ElectEase AI operates on a **Deterministic Decision Engine**. It ensures strict pathfinding, zero hallucinations, and robust security through structured logic.
+## Solution
+ElectEase AI is a deterministic, context-aware civic guidance assistant designed to solve these problems by providing:
+- **Guided Journeys**: A step-by-step interactive flow that simplifies complex processes.
+- **Explainable Guidance**: Clear explanations of *what* to do and *why* it matters.
+- **Actionable Intelligence**: Real-world tools like readiness scores, smart recommendations, and official links.
+- **Privacy & Security**: A rule-based system (no hallucinations) that runs entirely on local logic with strict input/output validation.
 
-## Architecture
+## Key Features
+- **Context-Aware Decision Engine**: Tailors guidance based on your specific voter profile (First-time, Registered, or Candidate).
+- **Explainable Guidance System**: Provides both detailed and "simple mode" explanations for accessibility.
+- **Readiness Score**: A dynamic checklist that tracks your eligibility, documents, and submission status.
+- **Smart Recommendations**: Context-aware tips to ensure a smooth journey.
+- **Location-Based Assistance**: Integration with Google Maps to help you find nearby election offices.
+- **Official Election Links**: Direct integration with verified Election Commission of India (ECI) and state portals.
+- **Downloadable Election Plan**: Generate and download a personalized `.txt` summary of your plan.
 
-The system is built on a "Logic-First, AI-Enhanced" architecture with pure Vanilla JavaScript (0 external dependencies).
+## Tech Stack
+- **Frontend**: HTML5, CSS3 (Vanilla), JavaScript (ES Modules)
+- **Core Logic**: Rule-based Decision Engine (Pure JavaScript)
+- **Data**: JSON-driven flow system
+- **No External Dependencies**: Built without heavy libraries or frameworks for maximum performance.
 
-### 1. Decision Engine (`src/logic/Engine.js`)
-The civic logic core. It resolves external user contexts (`voter_type`, `age`, `location`) against a strict JSON flow graph (`src/data/flow.json`). It dynamically calculates progress and timeline events without trusting internal control overrides.
+## System Architecture
+The system follows a strict, one-way pipeline to ensure security and determinism:
+`User → Validator (Security) → Decision Engine (Logic) → Explainability (Formatting) → UI`
 
-### 2. Security Layer (`src/logic/Validator.js`)
-The trust guard. It implements a 3-layer security system:
-- **Input Sanitization**: Strict whitelist allowing only `a-zA-Z0-9`, spaces, and hyphens.
-- **Context Validation**: Enforces type matching (e.g., `age` must be an integer >= 18) and strict enumerations.
-- **Output Integrity**: Ensures that the generated step strictly matches the predefined definitions in `flow.json` to prevent arbitrary text generation.
-- **Rate Limiting**: Throttles excessive requests to prevent abuse.
+## Security
+- **Input Sanitization**: Whitelist-based filtering to prevent XSS and SQL injection.
+- **Schema Validation**: Ensures all inputs and outputs conform to strict internal types.
+- **Rate Limiting**: Protects against automated spam and potential denial-of-service attempts.
+- **Output Integrity**: Verifies that guidance content has not been tampered with before display.
 
-### 3. Explainability Engine (`src/logic/ExplainabilityEngine.js`)
-The prompt system. Translates raw deterministic states into user-friendly, structured guidance. It provides `explanation`, `action`, and `alert` mappings from predefined, verified templates.
+## Testing
+The project includes a structured test suite that verifies the system across 5 categories: Validation, Flow, Security, Edge Cases, and Explainability.
 
-## Running Tests
-
-The system comes with a deterministic test suite to verify all logic and security bounds.
-
+To run the tests, use:
 ```bash
-# Verify the Decision Engine and Security routing
-node test/verify_engine.js
-
-# Verify the Security Layer strictness (Sanitization, Validation)
-node test/verify_validator.js
-
-# Verify the Explainability Engine output mappings
-node test/verify_explainability.js
+node test/verify_all.js
 ```
 
-## Constraints
-- **Size**: Strictly < 1MB
-- **Dependencies**: 0 external packages (Vanilla JS/Node.js core)
-- **Security**: Prompt injection prevention & strict output constraints.
+## Accessibility
+- **ARIA Compliance**: Full support for screen readers with semantic landmarks and live regions.
+- **Keyboard Navigation**: Fully operable via keyboard (e.g., radio group navigation with arrow keys).
+- **Responsive Design**: Glassmorphic UI that adapts to mobile, tablet, and desktop screens.
 
-## Current State
-- **Phase 1-3**: Core Engines & Security completed.
-- **Next Phase**: UI Foundation (Glassmorphic Interface).
+## Google Services Usage
+- **Google Maps**: Lightweight integration used to guide users to nearby election offices via search queries.
+- **Google Fonts**: Uses the "Inter" font family for modern, readable typography.
+
+## Performance
+- **Lightweight**: Entire system is under 1MB.
+- **O(1) Computations**: Progress and path calculation are pre-cached for instant UI updates.
+- **Minimal DOM Reflows**: Efficient rendering pipeline.
+
+## How to Run
+Since the project uses ES Modules, it must be served via a local server:
+```bash
+# Using Node.js
+npx serve
+
+# OR using Python
+python -m http.server
+```
+
+## Future Scope
+- **Backend Persistence**: Securely saving user progress across sessions.
+- **Multi-language Support**: Expanding guidance to regional languages.
+- **Live Data APIs**: Integrating real-time election results and polling station waiting times.
