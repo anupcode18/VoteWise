@@ -3,102 +3,147 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ElectEase AI | Civic Guidance Console</title>
+    <meta name="description" content="ElectEase AI — A deterministic civic guidance assistant for voter registration, election information, and candidacy processes.">
+    <title>ElectEase AI | Civic Guidance Dashboard</title>
     <link rel="stylesheet" href="src/ui/styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="background-blobs"></div>
+    <div class="background-blobs" aria-hidden="true"></div>
     
-    <main class="console-container">
-        <header class="console-header">
-            <div class="verified-badge" id="verified-badge">
-                <span class="badge-icon">✓</span> Verified Guidance
+    <main class="dashboard" role="main" aria-label="ElectEase Civic Guidance Dashboard">
+        <!-- ═══ Header ═══ -->
+        <header class="dash-header">
+            <div class="header-left">
+                <div class="verified-badge" role="status" aria-label="Verified guidance source">
+                    <span class="badge-icon" aria-hidden="true">✓</span> Verified Guidance
+                </div>
+                <h1>ElectEase AI</h1>
+                <p class="subtitle">Context-Aware Civic Assistant</p>
             </div>
-            <h1>ElectEase AI</h1>
-            <p class="subtitle">Context-Aware Civic Assistant</p>
         </header>
 
-        <section class="progress-section">
-            <div class="progress-label">
-                <span>Guidance Progress</span>
-                <span id="progress-percent">0%</span>
-            </div>
-            <div class="progress-bar-container">
-                <div class="progress-bar-fill" id="progress-bar"></div>
-            </div>
-        </section>
-
-        <section class="step-card" id="step-card">
-            <h2 id="step-title">Initializing...</h2>
-            
-            <div class="content-block">
-                <h3>Explanation</h3>
-                <p id="step-explanation"></p>
-            </div>
-
-            <div class="content-block secondary">
-                <h3>Why this matters</h3>
-                <p id="step-why"></p>
-            </div>
-
-            <div class="alert-box" id="step-alert" style="display: none;">
-                <p id="alert-message"></p>
-            </div>
-
-            <div class="action-box">
-                <h3>Next Action</h3>
-                <p id="step-action"></p>
-            </div>
-
-            <!-- Smart Recommendation -->
-            <div class="recommendation-box" id="recommendation-box">
-                <h3>💡 Recommendation</h3>
-                <p id="recommendation-text"></p>
-            </div>
-
-            <!-- Readiness Score & Checklist -->
-            <div class="readiness-section" id="readiness-section">
-                <div class="readiness-header">
-                    <span>Readiness</span>
-                    <span class="readiness-score" id="readiness-score">0%</span>
+        <!-- ═══ Dashboard Grid ═══ -->
+        <div class="dash-grid">
+            <!-- ── Sidebar: Journey Steps ── -->
+            <aside class="dash-sidebar" aria-label="Journey progress">
+                <div class="sidebar-section">
+                    <h3 class="sidebar-title">Journey Steps</h3>
+                    <nav class="step-nav" id="step-nav" aria-label="Step navigation">
+                        <!-- Populated by JS -->
+                    </nav>
                 </div>
-                <div class="readiness-bar-container">
-                    <div class="readiness-bar-fill" id="readiness-bar"></div>
-                </div>
-                <div class="checklist" id="checklist">
-                    <div class="checklist-item" id="check-eligibility">
-                        <span class="check-icon">○</span> Eligibility Confirmed
-                    </div>
-                    <div class="checklist-item" id="check-documents">
-                        <span class="check-icon">○</span> Documents Ready
-                    </div>
-                    <div class="checklist-item" id="check-submission">
-                        <span class="check-icon">○</span> Application Submitted
+
+                <div class="sidebar-section">
+                    <div class="progress-section">
+                        <div class="progress-label">
+                            <span>Progress</span>
+                            <span id="progress-percent" aria-live="polite">0%</span>
+                        </div>
+                        <div class="progress-bar-container" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" id="progress-bar-wrap">
+                            <div class="progress-bar-fill" id="progress-bar"></div>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </aside>
 
-            <div class="input-container" id="input-container">
-                <!-- Inputs will be injected here -->
-            </div>
-
-            <footer class="card-footer">
-                <div class="next-step-hint" id="next-step-hint"></div>
-                <div class="footer-actions">
-                    <button class="secondary-btn" id="simple-toggle" title="Toggle Simple Mode">☰ Simple</button>
-                    <button class="secondary-btn" id="download-btn" title="Download Plan">↓ Plan</button>
-                    <button class="primary-btn" id="next-btn">Start Guidance</button>
+            <!-- ── Main Panel: Step Content ── -->
+            <section class="dash-main" id="step-card" aria-label="Current step details">
+                <h2 id="step-title">Initializing...</h2>
+                
+                <div class="content-block">
+                    <h3 id="explanation-label">Explanation</h3>
+                    <p id="step-explanation" aria-labelledby="explanation-label"></p>
                 </div>
-            </footer>
-        </section>
+
+                <div class="content-block secondary">
+                    <h3>Why this matters</h3>
+                    <p id="step-why"></p>
+                </div>
+
+                <div class="alert-box" id="step-alert" style="display: none;" role="alert" aria-live="assertive">
+                    <p id="alert-message"></p>
+                </div>
+
+                <div class="action-box">
+                    <h3>Next Action</h3>
+                    <p id="step-action"></p>
+                </div>
+
+                <div class="official-action-box" id="official-action-box" style="display: none;">
+                    <h3>🔗 Official Government Action</h3>
+                    <div class="official-links-container" id="official-links-container">
+                        <!-- Links injected by JS -->
+                    </div>
+                </div>
+
+                <div class="input-container" id="input-container" role="group" aria-label="Step options">
+                    <!-- Inputs injected by JS -->
+                </div>
+
+                <footer class="card-footer">
+                    <div class="next-step-hint" id="next-step-hint" aria-live="polite"></div>
+                    <div class="footer-actions">
+                        <button class="secondary-btn" id="simple-toggle" title="Toggle Simple Mode" aria-pressed="false">☰ Simple</button>
+                        <button class="secondary-btn" id="copy-btn" title="Copy Plan to Clipboard" aria-label="Copy plan to clipboard">📋 Copy</button>
+                        <button class="secondary-btn" id="download-btn" title="Download Plan" aria-label="Download plan as text file">↓ Plan</button>
+                        <button class="primary-btn" id="next-btn" aria-label="Proceed to next step">Start Guidance</button>
+                    </div>
+                </footer>
+            </section>
+
+            <!-- ── Right Panel: Intelligence ── -->
+            <aside class="dash-right" aria-label="Guidance intelligence">
+                <!-- Recommendation -->
+                <div class="panel-card recommendation-box" id="recommendation-box">
+                    <h3>💡 Recommendation</h3>
+                    <p id="recommendation-text"></p>
+                </div>
+
+                <!-- Readiness -->
+                <div class="panel-card readiness-section" id="readiness-section">
+                    <div class="readiness-header">
+                        <span>Readiness</span>
+                        <span class="readiness-score" id="readiness-score" aria-live="polite">0%</span>
+                    </div>
+                    <div class="readiness-bar-container" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" id="readiness-bar-wrap">
+                        <div class="readiness-bar-fill" id="readiness-bar"></div>
+                    </div>
+                    <div class="checklist" id="checklist" role="list" aria-label="Readiness checklist">
+                        <div class="checklist-item" id="check-eligibility" role="listitem">
+                            <span class="check-icon" aria-hidden="true">○</span>
+                            <span>Eligibility Confirmed</span>
+                        </div>
+                        <div class="checklist-item" id="check-documents" role="listitem">
+                            <span class="check-icon" aria-hidden="true">○</span>
+                            <span>Documents Ready</span>
+                        </div>
+                        <div class="checklist-item" id="check-submission" role="listitem">
+                            <span class="check-icon" aria-hidden="true">○</span>
+                            <span>Application Submitted</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Location Assistance -->
+                <div class="panel-card location-section" id="location-section">
+                    <h3>📍 Nearby Election Offices</h3>
+                    <p id="location-status" class="location-status">Click below to find offices near you.</p>
+                    <button class="location-btn" id="location-btn" aria-label="Find nearby election offices">
+                        Find Nearby Offices
+                    </button>
+                    <a class="maps-link" id="maps-link" href="#" target="_blank" rel="noopener noreferrer" style="display: none;" aria-label="Open election offices in Google Maps">
+                        Open in Google Maps →
+                    </a>
+                </div>
+            </aside>
+        </div>
 
         <footer class="console-footer">
-            <p>Source: Predefined Election Rules • Deterministic Logic Engine v1.2</p>
+            <p>Source: Predefined Election Rules • Deterministic Logic Engine v2.0</p>
         </footer>
     </main>
 
-    <!-- UI Layer (Entry Point) -->
     <script type="module" src="src/ui/main.js"></script>
 </body>
 </html>
