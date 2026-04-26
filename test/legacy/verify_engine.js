@@ -1,3 +1,4 @@
+// Legacy test file — replaced by structured test suite (verify_all.js)
 import DecisionEngine from '../src/logic/Engine.js';
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
@@ -26,3 +27,4 @@ console.log("State 3 (injection check):", state3.step.id);
 console.assert(state3.step.id === 'verify_registration', "State 3 failed - should ignore internal control fields");
 
 console.log("VERIFY ENGINE: PASSED");
+

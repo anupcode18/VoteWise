@@ -1,3 +1,4 @@
+// Legacy test file — replaced by structured test suite (verify_all.js)
 import ExplainabilityEngine from '../src/logic/ExplainabilityEngine.js';
 
 console.log("TEST: Explainability Engine");
@@ -22,3 +23,4 @@ console.log("Fallback Output:", fallback.step.id);
 console.assert(fallback.step.id === "error", "Guidance fallback failed");
 
 console.log("VERIFY EXPLAINABILITY: PASSED");
+

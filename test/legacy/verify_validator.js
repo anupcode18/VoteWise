@@ -1,3 +1,4 @@
+// Legacy test file — replaced by structured test suite (verify_all.js)
 import Validator from '../src/logic/Validator.js';
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
@@ -26,3 +27,4 @@ console.log("Output Integrity Check:", isOutputValid);
 console.assert(isOutputValid === false, "Output integrity failed: allowed manipulated title");
 
 console.log("VERIFY VALIDATOR: PASSED");
+
