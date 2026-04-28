@@ -1,3 +1,17 @@
+/**
+ * ElectEase AI — Backend Server
+ *
+ * PURPOSE: Minimal Node HTTP server for Cloud Run deployment.
+ * RESPONSIBILITIES:
+ *   - Serve static frontend files (with security blocklist)
+ *   - Proxy /explain requests to Gemini API (with timeout + rate limiting)
+ *   - Expose /health for container orchestration health checks
+ * SECURITY:
+ *   - Dotfiles, .env, package.json etc. are blocked from static serving
+ *   - Gemini API key lives in env vars, never exposed to client
+ *   - Rate limiting prevents abuse of /explain endpoint
+ */
+
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -7,6 +21,45 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT_DIR = path.resolve(__dirname, '..');
 const PORT = Number(process.env.PORT || 8080);
+
+// ═══ Security: Blocked static paths ═══
+const BLOCKED_PATTERNS = [
+    /^\.env/i,
+    /^\.git/i,
+    /^\.gitignore/i,
+    /^\.dockerignore/i,
+    /^package\.json$/i,
+    /^package-lock\.json$/i,
+    /^Dockerfile$/i,
+    /^backend\//i,
+    /^node_modules\//i,
+];
+
+function isBlockedPath(urlPath) {
+    const cleaned = decodeURIComponent((urlPath || '/').split('?')[0]).replace(/^\/+/, '');
+    const segments = cleaned.split('/').filter(Boolean);
+
+    // Block any hidden segment (e.g. /.env, /foo/.secret, /.git/config)
+    if (segments.some((segment) => segment.startsWith('.'))) return true;
+
+    return BLOCKED_PATTERNS.some((pattern) => pattern.test(cleaned));
+}
+
+// ═══ Rate Limiting: /explain endpoint ═══
+const rateLimitMap = new Map();
+const RATE_LIMIT = 10;       // max requests
+const RATE_WINDOW = 60000;   // per 60 seconds
+
+function isRateLimited(ip) {
+    const now = Date.now();
+    const record = rateLimitMap.get(ip);
+    if (!record || now - record.start > RATE_WINDOW) {
+        rateLimitMap.set(ip, { count: 1, start: now });
+        return false;
+    }
+    record.count++;
+    return record.count > RATE_LIMIT;
+}
 
 // Minimal .env support for local runs; Cloud Run should use env vars.
 function loadLocalEnv() {
@@ -82,13 +135,22 @@ async function handleExplain(req, res) {
     const prompt = `Provide a simple, clear, and helpful expansion of this civic instruction in 2-3 sentences. Do not change the meaning. Instruction: "${text}"`;
 
     try {
-        const geminiRes = await fetch(`${GEMINI_ENDPOINT}?key=${GEMINI_API_KEY}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }]
-            })
-        });
+        // Timeout protection: abort Gemini call after 5 seconds
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 5000);
+        let geminiRes;
+        try {
+            geminiRes = await fetch(`${GEMINI_ENDPOINT}?key=${GEMINI_API_KEY}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }]
+                }),
+                signal: controller.signal
+            });
+        } finally {
+            clearTimeout(timeout);
+        }
 
         const raw = await geminiRes.text();
         let data = null;
@@ -109,6 +171,9 @@ async function handleExplain(req, res) {
 
         return sendJson(res, 200, { result });
     } catch (error) {
+        if (error.name === 'AbortError') {
+            return sendJson(res, 504, { error: 'Gemini API timed out. Please try again.' });
+        }
         return sendJson(res, 500, { error: `Backend failure: ${error.message}` });
     }
 }
@@ -122,6 +187,10 @@ function safeFilePath(urlPath) {
 }
 
 function serveStatic(req, res) {
+    // SECURITY: Block sensitive files before any filesystem access
+    if (isBlockedPath(req.url || '/')) {
+        return sendJson(res, 403, { error: 'Forbidden' });
+    }
     const filePath = safeFilePath(req.url || '/');
     if (!filePath) return sendJson(res, 400, { error: 'Invalid path' });
     if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
@@ -136,7 +205,14 @@ function serveStatic(req, res) {
 const server = http.createServer(async (req, res) => {
     if (req.method === 'OPTIONS') return sendJson(res, 204, {});
     if (req.method === 'GET' && req.url === '/health') return sendJson(res, 200, { ok: true });
-    if (req.method === 'POST' && req.url === '/explain') return handleExplain(req, res);
+    if (req.method === 'POST' && req.url === '/explain') {
+        // Rate limit by client IP
+        const clientIp = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress || 'unknown';
+        if (isRateLimited(clientIp)) {
+            return sendJson(res, 429, { error: 'Too many requests. Please wait before trying again.' });
+        }
+        return handleExplain(req, res);
+    }
     if (req.method === 'GET') return serveStatic(req, res);
     return sendJson(res, 404, { error: 'Not found' });
 });

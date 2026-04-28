@@ -1,11 +1,13 @@
 {
   "name": "election-ease",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "type": "module",
-  "description": "Deterministic Civic Guidance Assistant",
+  "description": "Deterministic Civic Guidance Assistant — ElectEase AI",
   "scripts": {
     "test": "node test/verify_all.js",
+    "test:backend": "node test/backend_test.js",
+    "test:all": "node test/verify_all.js && node test/backend_test.js",
     "dev": "npx serve",
-    "start": "npx serve -s . -p $PORT"
+    "start": "node backend/server.js"
   }
 }

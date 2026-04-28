@@ -1,81 +1,139 @@
-# ElectEase AI — Smart Civic Guidance Assistant
+# ElectEase AI — Deterministic Civic Guidance Assistant
 
-## Problem Statement
-Navigating election processes can be overwhelming and confusing for many citizens. Key challenges include:
-- Lack of clarity on registration steps and required documentation.
-- Confusion regarding eligibility criteria and deadlines.
-- Difficulty in finding local election offices for real-world actions.
-- General misinformation and the complexity of official government portals.
+## 1) Project Overview
+ElectEase AI addresses a high-impact public problem: election participation drops when people cannot clearly understand eligibility, required documents, deadlines, and local process steps.
 
-## Solution
-ElectEase AI is a deterministic, context-aware civic guidance assistant designed to solve these problems by providing:
-- **Guided Journeys**: A step-by-step interactive flow that simplifies complex processes.
-- **Explainable Guidance**: Clear explanations of *what* to do and *why* it matters.
-- **Actionable Intelligence**: Real-world tools like readiness scores, smart recommendations, and official links.
-- **Privacy & Security**: A rule-based system (no hallucinations) that runs entirely on local logic with strict input/output validation.
+### Problem Statement
+- Citizens face fragmented election information across portals and regions.
+- First-time voters often miss critical requirements due to unclear guidance.
+- Users need practical, trustworthy next steps, not open-ended chatbot responses.
 
-## Key Features
-- **Context-Aware Decision Engine**: Tailors guidance based on your specific voter profile (First-time, Registered, or Candidate).
-- **Explainable Guidance System**: Provides both detailed and "simple mode" explanations for accessibility.
-- **Readiness Score**: A dynamic checklist that tracks your eligibility, documents, and submission status.
-- **Smart Recommendations**: Context-aware tips to ensure a smooth journey.
-- **Location-Based Assistance**: Integration with Google Maps to help you find nearby election offices.
-- **Official Election Links**: Direct integration with verified Election Commission of India (ECI) and state portals.
-- **Downloadable Election Plan**: Generate and download a personalized `.txt` summary of your plan.
+### Why This Matters
+Election workflows are high-stakes, deadline-driven, and compliance-sensitive. In this context, incorrect guidance is harmful. A deterministic system improves trust, repeatability, and safety.
 
-## Tech Stack
-- **Frontend**: HTML5, CSS3 (Vanilla), JavaScript (ES Modules)
-- **Core Logic**: Rule-based Decision Engine (Pure JavaScript)
-- **Data**: JSON-driven flow system
-- **No External Dependencies**: Built without heavy libraries or frameworks for maximum performance.
+### Target Users
+- First-time voters
+- Already-registered voters who need process clarity
+- Election candidates navigating procedural requirements
 
-## System Architecture
-The system follows a strict, one-way pipeline to ensure security and determinism:
-`User → Validator (Security) → Decision Engine (Logic) → Explainability (Formatting) → UI`
+## 2) Solution Approach
+ElectEase AI is intentionally **not a chatbot**. It is a deterministic civic guidance system with optional AI enhancement.
 
-## Security
-- **Input Sanitization**: Whitelist-based filtering to prevent XSS and SQL injection.
-- **Schema Validation**: Ensures all inputs and outputs conform to strict internal types.
-- **Rate Limiting**: Protects against automated spam and potential denial-of-service attempts.
-- **Output Integrity**: Verifies that guidance content has not been tampered with before display.
+- **Deterministic Core**: Rule-based state transitions from a curated `flow.json`.
+- **Explainability-First**: Every output includes what to do, why it matters, and what to do next.
+- **Optional AI Layer**: Gemini expands existing deterministic guidance; it does not change decision logic.
 
-## Testing
-The project includes a structured test suite that verifies the system across 5 categories: Validation, Flow, Security, Edge Cases, and Explainability.
+## 3) System Architecture
 
-To run the tests, use:
+### Core Guidance Pipeline
+`User Input → Validator (Sanitization) → Decision Engine (Logic) → Explainability Engine (Output Formatting) → UI`
+
+### AI Enhancement Pipeline
+`Frontend UI → Minimal Cloud Run Backend Proxy → Gemini API`
+
+This split preserves deterministic behavior while adding secure, optional AI explainability.
+
+## 4) Key Features (Detailed)
+- **Context-Aware Guidance**: Path resolution based on voter profile and current journey step.
+- **Readiness Score**: Checklist-backed score for eligibility, documentation, and submission readiness.
+- **Smart Recommendations**: Action-focused nudges derived from deterministic state.
+- **Location-Based Assistance**: Nearby election-office lookup with geolocation + manual fallback.
+- **Official Links Integration**: Direct links to trusted election resources.
+- **Downloadable Election Plan**: One-click `.txt` export of current guidance and readiness status.
+- **Explain More with AI**: Optional Gemini-powered expansion of the current instruction in plain language.
+
+## 5) Google Services Integration (Critical)
+Google services are used with clear system boundaries and measurable value:
+
+### Google Cloud Run
+- Hosts the minimal backend proxy used by `/explain`.
+- Stores `GEMINI_API_KEY` in server environment variables (not client code).
+- Provides managed, autoscaling deployment with a public URL for evaluation.
+
+### Gemini API
+- Used only for **explanation enhancement** when users click **Explain More with AI**.
+- Does not route user state, scoring logic, or step progression.
+- Keeps the deterministic pipeline intact while improving readability and user confidence.
+
+### Google Maps
+- Supports real-world actionability by helping users find nearby election offices.
+- Converts guidance into immediate offline action (where to go, what to do).
+
+## 6) Security
+- **Input Sanitization**: Validator layer filters unsafe input patterns.
+- **Schema Validation**: State and output structures remain type-safe and predictable.
+- **Output Integrity**: Guidance is generated from deterministic templates and controlled state.
+- **API Key Protection**: Gemini key is loaded from backend environment variables.
+- **No Direct API Exposure**: Frontend never calls Gemini with a key.
+
+## 7) Efficiency
+- **Lightweight Frontend**: Designed to stay under the `<1MB` project constraint.
+- **No Heavy Frontend Frameworks**: Vanilla HTML/CSS/JS.
+- **Minimal Backend**: Native Node `http` server and built-in `fetch` only (no Express).
+- **Optimized Rendering**: Single rerender path and compact DOM updates.
+
+## 8) Testing
+The project includes a structured verification suite across:
+- Validation
+- Flow correctness
+- Security behavior
+- Edge cases
+
+Current reported status: **61 / 61 tests passed**.
+
+Run tests:
 ```bash
 node test/verify_all.js
 ```
 
-## Accessibility
-- **ARIA Compliance**: Full support for screen readers with semantic landmarks and live regions.
-- **Keyboard Navigation**: Fully operable via keyboard (e.g., radio group navigation with arrow keys).
-- **Responsive Design**: Glassmorphic UI that adapts to mobile, tablet, and desktop screens.
+## 9) Accessibility
+- ARIA labels and semantic status messaging
+- Keyboard-friendly input and option navigation
+- Semantic alert boxes for warnings and critical steps
+- **Simple Mode** for lower reading complexity and faster comprehension
 
-## Google Services Integration
-To create a hybrid intelligent civic assistant without compromising the deterministic core, ElectEase leverages Google services for infrastructure, AI enhancement, and real-world utility:
+## 10) Design Decisions
+### Why no backend initially
+Early architecture prioritized a deterministic, offline-friendly, low-complexity frontend core.
 
-- **Google Cloud Platform**: Application is containerized and hosted efficiently on Google Cloud Run, utilizing Cloud Storage for assets.
-- **Gemini API**: Acts as an optional AI enhancement layer. Users can click "Explain More with AI" to generate a simple, helpful expansion of any civic instruction using `gemini-1.5-flash`. The core routing logic remains strictly deterministic.
-- **Google Maps**: Provides visible, actionable location assistance. Uses HTML5 Geolocation to dynamically route users to nearby election offices, with a smart fallback to manual city search if location is denied.
-- **Google Fonts**: Uses the "Inter" font family for modern, readable typography.
+### Why deterministic instead of chatbot-first
+Election guidance demands correctness, consistency, and auditability; deterministic rules provide this.
 
-## Performance
-- **Lightweight**: Entire system is under 1MB.
-- **O(1) Computations**: Progress and path calculation are pre-cached for instant UI updates.
-- **Minimal DOM Reflows**: Efficient rendering pipeline.
+### Why Gemini is optional
+AI improves explanation quality, but must never alter legal/process routing. Optional usage prevents dependency risk.
 
-## How to Run
-Since the project uses ES Modules, it must be served via a local server:
+### Why minimal backend (no Express)
+Project constraints require lightweight deployment and low overhead. A built-in Node server is sufficient for secure API proxying.
+
+## 11) How to Run
+
+### Local Setup
+1. Create `.env` in project root:
+```env
+GEMINI_API_KEY=your_key_here
+GEMINI_MODEL=gemini-2.5-flash
+```
+2. Start server:
 ```bash
-# Using Node.js
-npx serve
+node backend/server.js
+```
+3. Open:
+`http://localhost:8080`
 
-# OR using Python
-python -m http.server
+### Cloud Run Deployment
+```bash
+gcloud auth login
+gcloud config set project YOUR_PROJECT_ID
+gcloud builds submit --tag gcr.io/YOUR_PROJECT_ID/electease
+gcloud run deploy electease \
+  --image gcr.io/YOUR_PROJECT_ID/electease \
+  --platform managed \
+  --region asia-south1 \
+  --allow-unauthenticated \
+  --set-env-vars GEMINI_API_KEY=YOUR_KEY,GEMINI_MODEL=gemini-2.5-flash
 ```
 
-## Future Scope
-- **Backend Persistence**: Securely saving user progress across sessions.
-- **Multi-language Support**: Expanding guidance to regional languages.
-- **Live Data APIs**: Integrating real-time election results and polling station waiting times.
+## 12) Future Scope
+- Regional and multilingual guidance packs
+- Real-time election API integrations (deadlines, polling updates)
+- Broader AI assist features (summaries, document prep guidance) while keeping deterministic routing intact

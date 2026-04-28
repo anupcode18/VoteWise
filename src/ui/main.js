@@ -299,23 +299,34 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // ═══ 6.5. AI Enhancement (Gemini proxy) ═══
+    // ═══ 6.5. AI Enhancement (Gemini proxy via backend) ═══
+    // This function calls the backend /explain endpoint, which proxies to Gemini.
+    // The deterministic engine output is NEVER modified — AI only expands the explanation.
     async function explainMoreWithAI(text) {
         if (!text || !text.trim()) return "No content available to explain right now.";
         try {
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 10000);
+
             const response = await fetch(`${AI_BACKEND_URL}/explain`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ text })
+                body: JSON.stringify({ text }),
+                signal: controller.signal
             });
+            clearTimeout(timeout);
+
             if (!response.ok) {
-                const errText = await response.text();
-                throw new Error(`Backend Error: ${response.status} - ${errText}`);
+                const errData = await response.json().catch(() => ({}));
+                throw new Error(errData.error || `Status ${response.status}`);
             }
             const data = await response.json();
             return data.result || "AI explanation is temporarily unavailable. Please rely on the standard guidance.";
         } catch (err) {
             console.error("AI backend error:", err);
+            if (err.name === 'AbortError') {
+                return "AI request timed out. The standard guidance above remains fully accurate.";
+            }
             return "AI explanation is temporarily unavailable. Please rely on the standard guidance.";
         }
     }

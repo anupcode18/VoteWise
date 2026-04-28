@@ -72,10 +72,8 @@ class DecisionEngine {
       currentStepId = this.routing[safeContext.voter_type] || 'start';
     }
 
-    // 4. Age override
-    if (safeContext.age !== null && safeContext.age < 18) {
-      currentStepId = 'eligibility_info';
-    }
+    // Note: Age validation (18-130) is enforced by Validator.validateContext().
+    // No age override needed here — invalid ages are already nullified upstream.
 
     const currentStep = this.flow[currentStepId] || this.flow['start'];
 
