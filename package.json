@@ -5,6 +5,7 @@
   "description": "Deterministic Civic Guidance Assistant",
   "scripts": {
     "test": "node test/verify_all.js",
-    "dev": "npx serve"
+    "dev": "npx serve",
+    "start": "npx serve -s . -p $PORT"
   }
 }

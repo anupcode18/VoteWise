@@ -52,8 +52,12 @@ node test/verify_all.js
 - **Keyboard Navigation**: Fully operable via keyboard (e.g., radio group navigation with arrow keys).
 - **Responsive Design**: Glassmorphic UI that adapts to mobile, tablet, and desktop screens.
 
-## Google Services Usage
-- **Google Maps**: Lightweight integration used to guide users to nearby election offices via search queries.
+## Google Services Integration
+To create a hybrid intelligent civic assistant without compromising the deterministic core, ElectEase leverages Google services for infrastructure, AI enhancement, and real-world utility:
+
+- **Google Cloud Platform**: Application is containerized and hosted efficiently on Google Cloud Run, utilizing Cloud Storage for assets.
+- **Gemini API**: Acts as an optional AI enhancement layer. Users can click "Explain More with AI" to generate a simple, helpful expansion of any civic instruction using `gemini-1.5-flash`. The core routing logic remains strictly deterministic.
+- **Google Maps**: Provides visible, actionable location assistance. Uses HTML5 Geolocation to dynamically route users to nearby election offices, with a smart fallback to manual city search if location is denied.
 - **Google Fonts**: Uses the "Inter" font family for modern, readable typography.
 
 ## Performance

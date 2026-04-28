@@ -54,6 +54,17 @@
                 <div class="content-block">
                     <h3 id="explanation-label">Explanation</h3>
                     <p id="step-explanation" aria-labelledby="explanation-label"></p>
+                    
+                    <!-- AI Feature Section -->
+                    <div class="ai-explain-section">
+                        <button id="ai-explain-btn" class="ai-btn" aria-label="Explain more with AI">
+                            ✨ Explain More with AI
+                        </button>
+                        <div id="ai-result-box" class="ai-result-box" style="display: none;" aria-live="polite">
+                            <h4 class="ai-result-title">✨ AI Enhanced Explanation</h4>
+                            <p id="ai-result-text"></p>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="content-block secondary">
@@ -128,9 +139,15 @@
                 <!-- Location Assistance -->
                 <div class="panel-card location-section" id="location-section">
                     <h3>📍 Nearby Election Offices</h3>
-                    <p id="location-status" class="location-status">Click below to find offices near you.</p>
+                    <p id="location-status" class="location-status">Click below to find offices near you via Google Maps.</p>
+                    
+                    <div id="manual-location-box" style="display: none; margin-bottom: 10px;">
+                        <input type="text" id="manual-city-input" placeholder="Enter city or zip code" class="manual-input" aria-label="Manual location input">
+                        <button id="manual-search-btn" class="location-btn secondary">Search on Maps</button>
+                    </div>
+
                     <button class="location-btn" id="location-btn" aria-label="Find nearby election offices">
-                        Find Nearby Offices
+                        <span aria-hidden="true">📍</span> Use My Location
                     </button>
                     <a class="maps-link" id="maps-link" href="#" target="_blank" rel="noopener noreferrer" style="display: none;" aria-label="Open election offices in Google Maps">
                         Open in Google Maps →
@@ -141,6 +158,7 @@
 
         <footer class="console-footer">
             <p>Source: Predefined Election Rules • Deterministic Logic Engine v2.0</p>
+            <p class="cloud-badge">⚡ Hosted on Google Cloud Platform</p>
         </footer>
     </main>
 

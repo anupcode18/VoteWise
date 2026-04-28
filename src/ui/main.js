@@ -13,6 +13,9 @@ import DecisionEngine from '../logic/Engine.js';
 import ExplainabilityEngine from '../logic/ExplainabilityEngine.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
+    // ═══ 0. API Config ═══
+    const AI_BACKEND_URL = window.ELECTEASE_AI_BACKEND_URL || '';
+
     // ═══ 1. State ═══
     let currentContext = { voter_type: 'unknown', age: 18, location: 'Local' };
     let engine;
@@ -104,6 +107,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         currentStepId = step.id;
         visitedSteps.add(currentStepId);
 
+        // Reset AI State
+        const aiResultBox = document.getElementById('ai-result-box');
+        if (aiResultBox) aiResultBox.style.display = 'none';
+        const aiBtn = document.getElementById('ai-explain-btn');
+        if (aiBtn) aiBtn.disabled = false;
+
         // Title & Progress
         dom.stepTitle.textContent = step.title;
         dom.progressBar.style.width = `${progress}%`;
@@ -149,7 +158,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const officialLinksContainer = document.getElementById('official-links-container');
         if (guidance.officialLinks) {
             officialLinksContainer.innerHTML = '';
-            
+
             if (guidance.officialLinks.primary) {
                 const primaryBtn = document.createElement('a');
                 primaryBtn.href = guidance.officialLinks.primary.url;
@@ -159,7 +168,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 primaryBtn.rel = 'noopener noreferrer';
                 officialLinksContainer.appendChild(primaryBtn);
             }
-            
+
             if (guidance.officialLinks.secondary) {
                 const secondaryBtn = document.createElement('a');
                 secondaryBtn.href = guidance.officialLinks.secondary.url;
@@ -169,7 +178,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 secondaryBtn.rel = 'noopener noreferrer';
                 officialLinksContainer.appendChild(secondaryBtn);
             }
-            
+
             officialActionBox.style.display = 'block';
         } else {
             officialActionBox.style.display = 'none';
@@ -290,6 +299,45 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
+    // ═══ 6.5. AI Enhancement (Gemini proxy) ═══
+    async function explainMoreWithAI(text) {
+        if (!text || !text.trim()) return "No content available to explain right now.";
+        try {
+            const response = await fetch(`${AI_BACKEND_URL}/explain`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text })
+            });
+            if (!response.ok) {
+                const errText = await response.text();
+                throw new Error(`Backend Error: ${response.status} - ${errText}`);
+            }
+            const data = await response.json();
+            return data.result || "AI explanation is temporarily unavailable. Please rely on the standard guidance.";
+        } catch (err) {
+            console.error("AI backend error:", err);
+            return "AI explanation is temporarily unavailable. Please rely on the standard guidance.";
+        }
+    }
+
+    const aiBtn = document.getElementById('ai-explain-btn');
+    const aiResultBox = document.getElementById('ai-result-box');
+    const aiResultText = document.getElementById('ai-result-text');
+
+    if (aiBtn) {
+        aiBtn.addEventListener('click', async () => {
+            aiBtn.disabled = true;
+            aiResultBox.style.display = 'block';
+            aiResultText.textContent = 'Generating enhanced explanation... ⚡';
+
+            const explanation = dom.stepExplanation.textContent;
+            const expanded = await explainMoreWithAI(explanation);
+
+            aiResultText.textContent = expanded;
+            aiBtn.disabled = false;
+        });
+    }
+
     // ═══ 7. Location Assistance (Google Maps) ═══
     dom.locationBtn.addEventListener('click', () => {
         dom.locationBtn.disabled = true;
@@ -320,12 +368,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     function showManualLocationFallback() {
-        const query = encodeURIComponent('election office near me');
-        const mapsUrl = `https://www.google.com/maps/search/${query}`;
-        dom.locationStatus.textContent = 'Location unavailable. Use the link below to search manually.';
-        dom.mapsLink.href = mapsUrl;
-        dom.mapsLink.style.display = 'block';
-        dom.locationBtn.disabled = false;
+        dom.locationStatus.textContent = 'Location unavailable. Please enter your city or zip code below.';
+        const manualBox = document.getElementById('manual-location-box');
+        if (manualBox) manualBox.style.display = 'block';
+        dom.locationBtn.style.display = 'none';
+    }
+
+    const manualSearchBtn = document.getElementById('manual-search-btn');
+    const manualCityInput = document.getElementById('manual-city-input');
+
+    if (manualSearchBtn && manualCityInput) {
+        manualSearchBtn.addEventListener('click', () => {
+            const city = manualCityInput.value.trim();
+            if (!city) return showToast('Please enter a location first.');
+
+            const query = encodeURIComponent(`election office near ${city}`);
+            const mapsUrl = `https://www.google.com/maps/search/${query}`;
+
+            dom.mapsLink.href = mapsUrl;
+            dom.mapsLink.style.display = 'block';
+            dom.locationStatus.textContent = `Search ready for: ${city}`;
+        });
     }
 
     // ═══ 8. Download Plan ═══
@@ -355,7 +418,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             '  READINESS CHECKLIST',
             '──────────────────────────────────────────────────',
             `  [${g.readiness.checklist.eligibility ? '✓' : ' '}] Eligibility Confirmed`,
-            `  [${g.readiness.checklist.documents  ? '✓' : ' '}] Documents Ready`,
+            `  [${g.readiness.checklist.documents ? '✓' : ' '}] Documents Ready`,
             `  [${g.readiness.checklist.submission ? '✓' : ' '}] Application Submitted`,
             '',
             `  Readiness Score:  ${g.readiness.score}%`,
