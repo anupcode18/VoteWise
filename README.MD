@@ -1,7 +1,5 @@
-# ElectEase AI — Deterministic Civic Guidance Assistant
-
-## 1) Project Overview
-ElectEase AI addresses a high-impact public problem: election participation drops when people cannot clearly understand eligibility, required documents, deadlines, and local process steps.
+# VoteWise AI Overview
+VoteWise AI addresses a high-impact public problem: election participation drops when people cannot clearly understand eligibility, required documents, deadlines, and local process steps.
 
 ### Problem Statement
 - Citizens face fragmented election information across portals and regions.
@@ -17,7 +15,7 @@ Election workflows are high-stakes, deadline-driven, and compliance-sensitive. I
 - Election candidates navigating procedural requirements
 
 ## 2) Solution Approach
-ElectEase AI is intentionally **not a chatbot**. It is a deterministic civic guidance system with optional AI enhancement.
+VoteWise AI is intentionally **not a chatbot**. It is a deterministic civic guidance system with optional AI enhancement.
 
 - **Deterministic Core**: Rule-based state transitions from a curated `flow.json`.
 - **Explainability-First**: Every output includes what to do, why it matters, and what to do next.
@@ -124,9 +122,9 @@ node backend/server.js
 ```bash
 gcloud auth login
 gcloud config set project YOUR_PROJECT_ID
-gcloud builds submit --tag gcr.io/YOUR_PROJECT_ID/electease
-gcloud run deploy electease \
-  --image gcr.io/YOUR_PROJECT_ID/electease \
+gcloud builds submit --tag gcr.io/YOUR_PROJECT_ID/VoteWise
+gcloud run deploy VoteWise \
+  --image gcr.io/YOUR_PROJECT_ID/VoteWise \
   --platform managed \
   --region asia-south1 \
   --allow-unauthenticated \
